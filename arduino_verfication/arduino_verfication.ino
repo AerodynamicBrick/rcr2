@@ -8,9 +8,8 @@
 const byte beginPolling = 2; //this may be 2 or 3 for a mini
 const byte userReady = 3; //this may be 2 or 3 for a mini
 
-//outputs
-volatile byte arrdOut = LOW; //drops the payload from chute when high..... do we want normal high or normal low?
-volatile byte pixhawkConfirmOut = LOW; //notifys user when arduino is ready to go
+//arrd output is defined in BURNBABY() <- reference to apollo 11 computer code
+//pixhawk 
 
 //various init
   boolean pollReady=false;
@@ -35,9 +34,9 @@ void loop() {
   
   //just to confirm functionality:
   digitalWrite(1, HIGH);
-  delay(500);
+  delay(250);
   digitalWrite(1, LOW);
-  delay(500);
+  delay(250);
 }
 
 void pollPots() {
@@ -83,7 +82,14 @@ void pollPots() {
     a3success=pollOne(A3,a3max,a3min,a3tolLow,a3tolHigh);
     if(a0success&&a1success&&a2success&&a3success)
     {
-      BURNBABY();
+      digitalWrite(4, HIGH); //tells pixhawk it's ready to deploy
+      while(true)
+      {
+        if(digitalRead(userReady))
+        {
+          BURNBABY();
+        }
+      }
     }
   }
 }
@@ -103,6 +109,7 @@ boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int toleren
   
 }
 
-void BURNBABY() {
-  digitalWrite(9, HIGH);//this deploys the chute be CAREFUL
+void BURNBABY()
+{
+  digitalWrite(9, HIGH);//drops the payload from chute when high..... do we want normal high or normal low?
 }
