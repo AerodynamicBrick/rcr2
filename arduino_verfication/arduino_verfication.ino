@@ -14,7 +14,12 @@ volatile byte pixhawkConfirmOut = LOW; //notifys user when arduino is ready to g
 
 //various init
   boolean pollReady=false;
-
+  boolean hitMins=false;
+  boolean hitMaxs=false;
+  boolean a0success=false;
+  boolean a1success=false;
+  boolean a2success=false;
+  boolean a3success=false;
 
 void setup() {
   pinMode(1, OUTPUT); //config led blinker
@@ -70,27 +75,30 @@ void pollPots() {
   int a3tolLow=69;
   int a3tolHigh=69;
 
-  
-  if(pollOne(A0,a0max,a0min,a0tolLow,a0tolHigh)&&pollOne(A1,a1max,a1min,a1tolLow,a1tolHigh)&&pollOne(A2,a2max,a2min,a2tolLow,a2tolHigh)&&pollOne(A3,a3max,a3min,a3tolLow,a3tolHigh))
+  while(true)
   {
-    BURNBABY();
+    a0success=pollOne(A0,a0max,a0min,a0tolLow,a0tolHigh);
+    a1success=pollOne(A1,a1max,a1min,a1tolLow,a1tolHigh);
+    a2success=pollOne(A2,a2max,a2min,a2tolLow,a2tolHigh);
+    a3success=pollOne(A3,a3max,a3min,a3tolLow,a3tolHigh);
+    if(a0success&&a1success&&a2success&&a3success)
+    {
+      BURNBABY();
+    }
   }
 }
 
 boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh) {
   while(true)
   {
-    boolean hitMins=false;
-    boolean hitMaxs=false;
-    
     int sensorValue = analogRead(pin);
     //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
-    
     
     if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
     if(sensorValue>=maximum - tolerenceHigh){hitMaxs=true;}
 
     if(hitMins && hitMaxs){return true;}
+    else{return false;}
   }
   
 }
