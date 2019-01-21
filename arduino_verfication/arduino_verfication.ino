@@ -34,6 +34,11 @@ void pollPots() {
   //write code to confirm MAXs and MINs here
   // a0, a1, a2, a3, are the control surfaces
 
+
+
+
+  //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
+  //scale this chart as according to the convension above.
   //data per each servo:
   //a0 min, a0 max, tolerence         //wing right
   //   #     #         #
@@ -47,7 +52,15 @@ void pollPots() {
   
 }
 
-pollOne(int maximum, int minimum) {
+pollOne(int pin, int maximum, int minimum, int tolerence) {
+  while(true)
+  {
+    int sensorValue = analogRead(pin);
+    //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
+    
+    
+    if(sensor)
+  }
   
 }
 
