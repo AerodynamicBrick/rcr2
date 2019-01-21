@@ -31,7 +31,7 @@ void setup() {
   pinMode(arrdOutPin, OUTPUT);
   pinMode(pixhawkReturnPin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(beginPolling), pollPots, RISING);
-  attachInterrupt(digitalPinToInterrupt(userReady), pollPots, RISING);
+  attachInterrupt(digitalPinToInterrupt(userReady), riseUserReady, RISING);
 
 }
 
@@ -99,7 +99,10 @@ void pollPots() {
     }
   }
 }
-
+void riseUserReady()
+{
+  userReady==HIGH;
+}
 boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh) {
   while(true)
   {
