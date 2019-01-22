@@ -10,10 +10,7 @@ const byte userReady = 3; //this may be 2 or 3 for a mini
 
 //outputs
 const byte arrdOutPin = 9;
-const byte pixhawkReturnPin = 4;
-
-//arrd output is defined in BURNBABY() <- reference to apollo 11 computer code
-//pixhawk 
+const byte pixhawkReturnPin = 4; 
 
 //various init
   boolean pollReady=false;
@@ -36,17 +33,16 @@ void setup() {
   
   attachInterrupt(digitalPinToInterrupt(beginPolling), pollPots, RISING);
   attachInterrupt(digitalPinToInterrupt(userReady), riseUserReady, RISING);
-  Serial.begin(9600); 
 }
 
-void loop() {
-  if(userReady && pollReady){BURNBABY();}
-  
+void loop()
+{
+  //Serial.println("loop");
   //just to confirm functionality:
   digitalWrite(1, HIGH);
-  delay(250);
-  digitalWrite(1, LOW);
-  delay(250);
+  //delay(500);
+  //digitalWrite(1, LOW);
+  //delay(500);
 }
 
 void pollPots() {
@@ -122,7 +118,7 @@ boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int toleren
     //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
     
     if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
-    if(sensorValue>=maximum - tolerenceHigh){hitMaxs=true;}
+    if(sensorValue>=maximum - tolerenceHigh) {hitMaxs=true;}
 
     if(hitMins && hitMaxs)
     {
