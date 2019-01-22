@@ -5,51 +5,86 @@
 //arduino blinker to confirm function is on pin 1
 
 //inputs from pixhawk
-const byte beginPolling = 2; //this may be 2 or 3 for a mini
-const byte userReady = 3; //this may be 2 or 3 for a mini
+const byte beginPollingPin = 2; //this may be 2 or 3 for a mini
+const byte userReadyPin = 3; //this may be 2 or 3 for a mini
 
 //outputs
 const byte arrdOutPin = 9;
 const byte pixhawkReturnPin = 4; 
 
 //various init
+  boolean userReady=false;
   boolean pollReady=false;
-  boolean hitMins=false;
-  boolean hitMaxs=false;
-  boolean a0success=false;
-  boolean a1success=false;
-  boolean a2success=false;
-  boolean a3success=false;
+  
+  boolean a0successMax=false;
+  boolean a1successMax=false;
+  boolean a2successMax=false;
+  boolean a3successMax=false;
+  boolean a0successMin=false;
+  boolean a1successMin=false;
+  boolean a2successMin=false;
+  boolean a3successMin=false;
+
+  boolean oldPoll=false;
+  boolean oldReady=false;
 
 void setup() {
-  pinMode(1, OUTPUT); //config led blinker. this is visible on the arduino TX led
-
+  pinMode(0, OUTPUT); //config led blinker. this is visible on the arduino TX led
+  
   //IO
   
-  pinMode(beginPolling, INPUT);
-  pinMode(userReady, INPUT);
-  pinMode(arrdOutPin, OUTPUT);
-  pinMode(pixhawkReturnPin, OUTPUT);
+  pinMode(beginPollingPin, INPUT);
+  pinMode(userReadyPin, INPUT);
   
-  attachInterrupt(digitalPinToInterrupt(beginPolling), pollPots, RISING);
-  attachInterrupt(digitalPinToInterrupt(userReady), riseUserReady, RISING);
+  pinMode(arrdOutPin, OUTPUT);
+  digitalWrite(arrdOutPin, LOW);
+  
+  pinMode(pixhawkReturnPin, OUTPUT);
 
   Serial.begin(9600);
-  Serial.print("Setup complete.");
+  Serial.println("Setup complete.");
 }
 
 void loop()
 {
+  if(oldPoll!=digitalRead(beginPollingPin) && !pollReady)
+  {
+    oldPoll=!oldPoll;
+    Serial.println("Begining polling.");
+    pollPots();
+  }
+  if(oldReady!=digitalRead(userReadyPin))
+  {
+  oldReady=!oldReady; //detects change
+  userReady=digitalRead(userReadyPin);
+  if(userReady)
+  {
+    Serial.println("User has signaled readyness.");
+  }
+  else
+  {
+    Serial.println("User has unsignaled readyness.");
+  }
+  }
+  
   Serial.println("Loop.");
   //just to confirm functionality:
-  digitalWrite(1, HIGH);
+  digitalWrite(0, HIGH);
   delay(500);
-  digitalWrite(1, LOW);
+  digitalWrite(0, LOW);
   delay(500);
+
+  if(userReady && pollReady){BURNBABY();}
 }
 
-void pollPots() {
+void pollPots()
+{
+  if(!digitalRead(beginPollingPin))
+  {
+    return;
+  }
   Serial.println("Polling Pots.");
+  
   //write code to confirm MAXs and MINs here
   // a0, a1, a2, a3, are the control surfaces
 
@@ -92,47 +127,58 @@ void pollPots() {
   int a3tolLow=41;
   int a3tolHigh=41;
 
+
   while(true)
   {
-    a0success=pollOne(A0,a0max,a0min,a0tolLow,a0tolHigh);
-    a1success=pollOne(A1,a1max,a1min,a1tolLow,a1tolHigh);
-    a2success=pollOne(A2,a2max,a2min,a2tolLow,a2tolHigh);
-    a3success=pollOne(A3,a3max,a3min,a3tolLow,a3tolHigh);
-    if(a0success&&a1success&&a2success&&a3success)
+    if(oldReady!=digitalRead(userReadyPin))
+    {
+    oldReady=!oldReady; //detects change
+    userReady=digitalRead(userReadyPin);
+    if(userReady)
+    {
+      Serial.println("User has signaled readyness.");
+    }
+    else
+    {
+      Serial.println("User has unsignaled readyness.");
+    }
+    }
+    a0successMax=pollOneMax(A0,a0max,a0min,a0tolLow,a0tolHigh);
+    a1successMax=pollOneMax(A1,a1max,a1min,a1tolLow,a1tolHigh);
+    a2successMax=pollOneMax(A2,a2max,a2min,a2tolLow,a2tolHigh);
+    a3successMax=pollOneMax(A3,a3max,a3min,a3tolLow,a3tolHigh);
+    
+    a0successMin=pollOneMin(A0,a0max,a0min,a0tolLow,a0tolHigh);
+    a1successMin=pollOneMin(A1,a1max,a1min,a1tolLow,a1tolHigh);
+    a2successMin=pollOneMin(A2,a2max,a2min,a2tolLow,a2tolHigh);
+    a3successMin=pollOneMin(A3,a3max,a3min,a3tolLow,a3tolHigh);
+
+    
+    if(a0successMax&&a1successMax&&a2successMax&&a3successMax&&a0successMin&&a1successMin&&a2successMin&&a3successMin)
     {
       digitalWrite(pixhawkReturnPin, HIGH); //tells pixhawk it's ready to deploy
-      while(true)
-      {
-        if(digitalRead(userReady)==HIGH) //might be redundant but, why chance it?
-        {
-          BURNBABY();
-        }
-      }
+      Serial.println("All pots ready.");
+      pollReady=true;
+      return;
     }
+    
   }
+  Serial.println("1");
 }
-void riseUserReady()
+boolean pollOneMax(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh)
+{ 
+  int sensorValue = analogRead(pin);
+  
+  //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
+  Serial.print(sensorValue>=(maximum + tolerenceHigh));Serial.print(sensorValue);Serial.print(" ");Serial.println(maximum - tolerenceHigh);
+  if(sensorValue<=(minimum + tolerenceLow)){return(true);}else{return(false);}
+}
+boolean pollOneMin(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh)
 {
-  Serial.println("User has signaled readyness.");
-  userReady==HIGH;
-}
-boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh) {
-  Serial.println("Polling Single: " + pin);
   int sensorValue = analogRead(pin);
   //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
-
-  if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
-  if(sensorValue>=maximum - tolerenceHigh) {hitMaxs=true;}
-
-  if(hitMins && hitMaxs)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-  
+  Serial.print(sensorValue>=(minimum - tolerenceHigh));Serial.print(sensorValue);Serial.print(" ");Serial.println(maximum - tolerenceHigh);
+  if(sensorValue>=(minimum - tolerenceHigh)) {return(true);}else{return(false);}
 }
 
 void BURNBABY()
