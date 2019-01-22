@@ -33,19 +33,23 @@ void setup() {
   
   attachInterrupt(digitalPinToInterrupt(beginPolling), pollPots, RISING);
   attachInterrupt(digitalPinToInterrupt(userReady), riseUserReady, RISING);
+
+  Serial.begin(9600);
+  Serial.print("Setup complete.");
 }
 
 void loop()
 {
-  //Serial.println("loop");
+  Serial.println("Loop.");
   //just to confirm functionality:
   digitalWrite(1, HIGH);
-  //delay(500);
-  //digitalWrite(1, LOW);
-  //delay(500);
+  delay(500);
+  digitalWrite(1, LOW);
+  delay(500);
 }
 
 void pollPots() {
+  Serial.println("Polling Pots.");
   //write code to confirm MAXs and MINs here
   // a0, a1, a2, a3, are the control surfaces
 
@@ -109,30 +113,30 @@ void pollPots() {
 }
 void riseUserReady()
 {
+  Serial.println("User has signaled readyness.");
   userReady==HIGH;
 }
 boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int tolerenceHigh) {
-  while(true)
-  {
-    int sensorValue = analogRead(pin);
-    //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
-    
-    if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
-    if(sensorValue>=maximum - tolerenceHigh) {hitMaxs=true;}
+  Serial.println("Polling Single: " + pin);
+  int sensorValue = analogRead(pin);
+  //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
 
-    if(hitMins && hitMaxs)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+  if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
+  if(sensorValue>=maximum - tolerenceHigh) {hitMaxs=true;}
+
+  if(hitMins && hitMaxs)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
   }
   
 }
 
 void BURNBABY()
 {
+  Serial.print("Droping payload.");
   digitalWrite(arrdOutPin, HIGH);//drops the payload from chute when high..... do we want normal high or normal low?
 }
