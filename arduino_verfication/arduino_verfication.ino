@@ -25,14 +25,18 @@ const byte pixhawkReturnPin = 4;
   boolean a3success=false;
 
 void setup() {
-  pinMode(1, OUTPUT); //config led blinker
+  pinMode(1, OUTPUT); //config led blinker. this is visible on the arduino TX led
+
+  //IO
+  
   pinMode(beginPolling, INPUT);
   pinMode(userReady, INPUT);
   pinMode(arrdOutPin, OUTPUT);
   pinMode(pixhawkReturnPin, OUTPUT);
+  
   attachInterrupt(digitalPinToInterrupt(beginPolling), pollPots, RISING);
   attachInterrupt(digitalPinToInterrupt(userReady), riseUserReady, RISING);
-
+  Serial.begin(9600); 
 }
 
 void loop() {
@@ -55,30 +59,38 @@ void pollPots() {
   //0.0049 volts (4.9 mV) per unit according to https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
   //scale this chart as according to the convension above.
   //data per each servo:
+
+  //rudder
   //a0 min, a0 max, tolerenceLow    tolerenceHigh     //wing right
-  //   #     #         #                  #
-  int a0min=69;
-  int a0max=420;
-  int a0tolLow=69;
-  int a0tolHigh=69;
+  //   .90     2.18      .2              .2
+  int a0min=184;
+  int a0max=445;
+  int a0tolLow=41;
+  int a0tolHigh=41;
+
+  //elevator
   //a1 min, a1 max, tolerenceLow    tolerenceHigh     //wing left
-  //   #     #         #                  #
-  int a1min=69;
-  int a1max=420;
-  int a1tolLow=69;
-  int a1tolHigh=69;
+  //   1.17  2.09        .2               .2
+  int a1min=239;
+  int a1max=427;
+  int a1tolLow=41;
+  int a1tolHigh=41;
+
+  //right wing
   //a2 min, a2 max, tolerenceLow    tolerenceHigh     //elevator
-  //   #     #         #                  #
-  int a2min=69;
-  int a2max=420;
-  int a2tolLow=69;
-  int a2tolHigh=69;
+  //  1.23    2.14      .2                .2
+  int a2min=251;
+  int a2max=437;
+  int a2tolLow=41;
+  int a2tolHigh=41;
+
+  //left wing
   //a3 min, a3 max, tolerenceLow    tolerenceHigh     //rudder
-  //   #     #         #                  #
-  int a3min=69;
-  int a3max=420;
-  int a3tolLow=69;
-  int a3tolHigh=69;
+  //  1.20   2.15         .2              .2
+  int a3min=245;
+  int a3max=439;
+  int a3tolLow=41;
+  int a3tolHigh=41;
 
   while(true)
   {
@@ -112,8 +124,14 @@ boolean pollOne(int pin, int maximum, int minimum, int tolerenceLow, int toleren
     if(sensorValue<=minimum + tolerenceLow){hitMins=true;}
     if(sensorValue>=maximum - tolerenceHigh){hitMaxs=true;}
 
-    if(hitMins && hitMaxs){return true;}
-    else{return false;}
+    if(hitMins && hitMaxs)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
   
 }
