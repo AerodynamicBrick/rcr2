@@ -183,6 +183,6 @@ boolean pollOneMin(int pin, int maximum, int minimum, int tolerenceLow, int tole
 
 void BURNBABY()
 {
-  Serial.print("Droping payload.");
+  Serial.println("Droping payload.");
   digitalWrite(arrdOutPin, HIGH);//drops the payload from chute when high..... do we want normal high or normal low?
 }
